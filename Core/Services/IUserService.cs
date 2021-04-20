@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using GoogleNote.Core.Models;
 
 namespace GoogleNote.Core.Services
@@ -12,5 +13,7 @@ namespace GoogleNote.Core.Services
         void UpdateUser(int userId, User user);
         void DeleteUser(int userId);
         void AddUser(User user);
+
+        Task<User> Login(string userName, string email);
     }
 }

@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Identity;
 using GoogleNote.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,10 @@ namespace GoogleNote
                 .AddDbContext<DatabaseContext>(
                     options => options.UseNpgsql(Configuration.GetConnectionString("LocalPostgreSQL")).EnableSensitiveDataLogging()
                 );
+            
+            services.AddAuthentication()
+                .AddIdentityServerJwt();
+
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
