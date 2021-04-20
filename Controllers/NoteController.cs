@@ -13,9 +13,9 @@ namespace GoogleNote.Controllers
     [Route("api/[controller]")]
     public class NoteController : ControllerBase
     {
-        private NoteContext _ctx;
+        private DatabaseContext _ctx;
 
-        public NoteController(NoteContext context)
+        public NoteController(DatabaseContext context)
         {
             this._ctx = context;
         }
@@ -56,8 +56,8 @@ namespace GoogleNote.Controllers
 
             currentNote.Title = entity.Title;
             currentNote.Description = entity.Description;
-            currentNote.DateStarted = entity.DateStarted;
-            currentNote.DateFinished = entity.DateFinished;
+            currentNote.CreatedAt = entity.CreatedAt;
+            currentNote.UpdatedAt = entity.UpdatedAt;
 
             await _ctx.SaveChangesAsync();
             return currentNote;
