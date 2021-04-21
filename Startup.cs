@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Identity;
 using GoogleNote.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,8 +29,14 @@ namespace GoogleNote
                     options => options.UseNpgsql(Configuration.GetConnectionString("LocalPostgreSQL")).EnableSensitiveDataLogging()
                 );
             
-            services.AddAuthentication()
-                .AddIdentityServerJwt();
+            services.AddAuthentication(o => {
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(o => {
+                o.Authority = "https://localhost:5001";
+                o.Audience = "urn:googlenote";
+                o.RequireHttpsMetadata = false;
+            });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -59,6 +64,7 @@ namespace GoogleNote
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {

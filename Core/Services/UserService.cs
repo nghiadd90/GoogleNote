@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
 using GoogleNote.Core.Models;
+using System.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Linq;
 
 namespace GoogleNote.Core.Services
 {
@@ -15,9 +19,10 @@ namespace GoogleNote.Core.Services
         }
 
 
-        public async Task<User> Login(string userName, string email)
+        public async Task<User> Login(string email, string password)
         {
-            var user =  _ctx.Set<User>().Find(1);
+            var user =  _ctx.Set<User>().Single(u => u.Email == email);
+            var userPwd = user.Password;
             return user;
         }
 
@@ -31,9 +36,14 @@ namespace GoogleNote.Core.Services
             return user;
         }
 
-        private string generateJwtToken(User user)
+        private string GenerateJwtToken(User user)
         {
             return "";
+        }
+
+        private bool VerifyPassword(string curPwd, string pwd)
+        {
+            return true;
         }
 
         public void AddUser(User user)

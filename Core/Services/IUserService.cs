@@ -14,6 +14,6 @@ namespace GoogleNote.Core.Services
         void DeleteUser(int userId);
         void AddUser(User user);
 
-        Task<User> Login(string userName, string email);
+        Task<User> Login(string email, string password);
     }
 }

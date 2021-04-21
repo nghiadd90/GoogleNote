@@ -19,6 +19,8 @@ namespace GoogleNote.Core.Models
         
         public string Password { get; set; }
 
+        public string PasswordSalt { get; set; }
+
         public string Name { get; set; }
         
         public DateTime CreatedAt { get; set; }
