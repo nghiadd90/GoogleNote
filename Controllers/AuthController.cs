@@ -10,27 +10,38 @@ using GoogleNote.Core.Services;
 
 namespace GoogleNote.Controllers
 {
-    [Route("api/authenticate")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private IUserService _userService;
+        private IAuthService _authService;
 
-        public AuthController(IUserService userService)
+        public AuthController(IAuthService authService)
         {
-            _userService = userService;
+            _authService = authService;
         }
 
         // POST: api/authenticate
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> Authenticate(User user)
+        [HttpPost("login")]
+        public async Task<ActionResult> Login(User entity)
         {
-            // _context.Users.Add(user);
-            // await _context.SaveChangesAsync();
+            var response = _authService.Login(entity.Email, entity.Password);
 
             // return CreatedAtAction("GetUser", new { id = user.Id }, user);
-            return NotFound();
+            if (response == null) {
+                return BadRequest();
+            }
+
+            return Ok(response);
+        }
+
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register(User entity)
+        {
+            var user = await _authService.Register(entity.Email, entity.Password);
+
+            return user;
         }
 
         private bool UserExists(int id)

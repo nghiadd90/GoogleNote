@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace GoogleNote.Core.Models
 {
@@ -22,6 +23,7 @@ namespace GoogleNote.Core.Models
 
         public DateTime? DeletedAt { get; set; }
 
+        [JsonIgnore]
         public User User { get; set; }
 
         public ICollection<Label> Labels { get; set; }

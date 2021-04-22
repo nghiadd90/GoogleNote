@@ -6,35 +6,56 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using GoogleNote.Core.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace GoogleNote.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class NoteController : ControllerBase
     {
         private DatabaseContext _ctx;
+        private User _authUser;
 
         public NoteController(DatabaseContext context)
         {
             this._ctx = context;
+            _authUser = (User)HttpContext.Items["User"];
         }
 
         [HttpGet]
         public async Task<IEnumerable<Note>> All()
         {
-            return await _ctx.Notes.OrderBy(note => note.Id).ToListAsync();
+            return await _ctx.Notes
+                .Where(note => note.UserId == _authUser.Id)
+                .OrderBy(note => note.Id)
+                .ToListAsync();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Note>> GetById(long id)
+        public async Task<ActionResult<Note>> GetById(int id)
         {
-            return await _ctx.Notes.FindAsync(id) ?? new ActionResult<Note>(NotFound());
+            var note = await _ctx.Notes.FindAsync(id);
+
+            if (note == null)
+            {
+                return NotFound();
+            }
+
+            if (note.UserId != _authUser.Id)
+            {
+                new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+            }
+
+            return note;
         }
 
         [HttpPost]
         public async Task<ActionResult<Note>> AddAsync(Note entity)
         {
+            entity.UserId = _authUser.Id;
             _ctx.Set<Note>().Add(entity);
             await _ctx.SaveChangesAsync();
 
@@ -56,15 +77,15 @@ namespace GoogleNote.Controllers
 
             currentNote.Title = entity.Title;
             currentNote.Description = entity.Description;
-            currentNote.CreatedAt = entity.CreatedAt;
-            currentNote.UpdatedAt = entity.UpdatedAt;
+            currentNote.CreatedAt = DateTime.Now;
+            currentNote.UpdatedAt = DateTime.Now;
 
             await _ctx.SaveChangesAsync();
             return currentNote;
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Note>> Delete(long id)
+        public async Task<ActionResult<Note>> Delete(int id)
         {
             var note = _ctx.Notes.Find(id);
             if (note == null)
@@ -72,7 +93,7 @@ namespace GoogleNote.Controllers
                 return NotFound();
             }
 
-            _ctx.Notes.Remove(note);
+            note.DeletedAt = DateTime.Now;
             await _ctx.SaveChangesAsync();
 
             return NoContent();

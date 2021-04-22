@@ -72,14 +72,6 @@ export class Note extends Component
     }
 
     render() {
-        // let content =  this.state.loading ? (
-        //     <p>
-        //         <em>Loading...</em>
-        //     </p>
-        // ) : (
-        //     this.renderAllNotes(this.state.notes)
-        // );
-
         let content = this.props.notes.loading ?
         (
             <p>

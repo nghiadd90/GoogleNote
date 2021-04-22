@@ -9,6 +9,17 @@ using System.Linq;
 
 namespace GoogleNote.Core.Services
 {
+    public interface IUserService
+    {
+        List<User> GetAllUsers();
+
+        User GetById(int userId);
+
+        void UpdateUser(int userId, User user);
+        void DeleteUser(int userId);
+        void AddUser(User user);
+    }
+
     public class UserService : IUserService
     {
         private DatabaseContext _ctx;
@@ -16,34 +27,6 @@ namespace GoogleNote.Core.Services
         public UserService(DatabaseContext context)
         {
             this._ctx = context;
-        }
-
-
-        public async Task<User> Login(string email, string password)
-        {
-            var user =  _ctx.Set<User>().Single(u => u.Email == email);
-            var userPwd = user.Password;
-            return user;
-        }
-
-        public async Task<User> Register(User user, string pwd)
-        {
-            user.Password = BC.HashPassword(pwd);
-
-            await _ctx.Users.AddAsync(user); // Adding the user to context of users.
-            await _ctx.SaveChangesAsync(); // Save changes to database.
-
-            return user;
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            return "";
-        }
-
-        private bool VerifyPassword(string curPwd, string pwd)
-        {
-            return true;
         }
 
         public void AddUser(User user)
@@ -61,9 +44,9 @@ namespace GoogleNote.Core.Services
             throw new System.NotImplementedException();
         }
 
-        public User GetUserById(int userId)
+        public User GetById(int userId)
         {
-            throw new System.NotImplementedException();
+            return _ctx.Set<User>().Find(userId);
         }
 
         public void UpdateUser(int userId, User user)

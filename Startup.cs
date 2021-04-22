@@ -5,8 +5,13 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using GoogleNote.Core.Models;
 using Microsoft.EntityFrameworkCore;
+using GoogleNote.Core.Services;
+using GoogleNote.Core.Helpers;
+using GoogleNote.Core.Middleware;
+using System;
 
 namespace GoogleNote
 {
@@ -22,22 +27,35 @@ namespace GoogleNote
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllersWithViews().AddNewtonsoftJson(
+                options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
 
-            services.AddControllersWithViews();
             services.AddEntityFrameworkNpgsql()
                 .AddDbContext<DatabaseContext>(
                     options => options.UseNpgsql(Configuration.GetConnectionString("LocalPostgreSQL")).EnableSensitiveDataLogging()
                 );
             
-            services.AddAuthentication(o => {
-                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(o => {
-                o.Authority = "https://localhost:5001";
-                o.Audience = "urn:googlenote";
-                o.RequireHttpsMetadata = false;
-            });
-
+            // services.AddAuthentication(o => {
+            //     o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //     o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            // }).AddJwtBearer(o => {
+            //     o.Authority = "https://localhost:5001";
+            //     o.Audience = "urn:googlenote";
+            //     o.RequireHttpsMetadata = false;
+            //     o.TokenValidationParameters = new TokenValidationParameters
+            //     {
+            //         ValidateIssuerSigningKey = true,
+            //         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["AppSettings:Secret"])),
+            //         ValidateIssuer = false,
+            //         ValidateAudience = false,
+            //     };
+            // });
+            services.AddOptions();
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
+            
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -64,8 +82,10 @@ namespace GoogleNote
             app.UseSpaStaticFiles();
 
             app.UseRouting();
-            app.UseAuthentication();
+            // app.UseAuthentication();
+            app.UseAuthorization();
 
+            app.UseMiddleware<JwtMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
